@@ -23,9 +23,11 @@ init({tcp, http}, Req, Opts) ->
 
 handle(Req, State) ->
     {QS, R1} = cowboy_http_req:body_qs(Req),
-    QuotedPayload = proplists:get_value("payload", QS),
+    BitstringQuotedPayload = proplists:get_value(<<"payload">>, QS),
+    QuotedPayload = erlang:bitstring_to_list(BitstringQuotedPayload),
     UnquotedPayload = unquote(QuotedPayload),
-    Payload = jsx:json_to_term(UnquotedPayload, [{strict, false}]),
+    UnquotedBinaryPayload = erlang:list_to_binary(UnquotedPayload),
+    Payload = jsx:json_to_term(UnquotedBinaryPayload, [{strict, true}]),
     erlang:display(Payload),
     {ok, R2} = cowboy_http_req:reply(200, [], "", Req),
     {ok, R2, State}.
